@@ -1,6 +1,6 @@
 import speech_recognition as sr
 import subprocess
-
+from language_tool_python import LanguageTool
 import os
 
 # Explicitly set PulseAudio environment variables
@@ -23,10 +23,8 @@ def record_text():
     while(1):
         try:
             with sr.Microphone() as source:
-
+            #use what_mic.py to find the microphone index of the mic you would like to use, or just use sr.Microphone() for the default mic.
                 r.adjust_for_ambient_noise(source, duration=0.2)
-
-                print("I'm listening")
 
                 audio = r.listen(source)
 
@@ -38,10 +36,10 @@ def record_text():
 
         except sr.RequestError as e:
             print("Could not request results: {0}".format(e))
-
+            output_text("Could not request results: {0}".format(e))
         except sr.UnknownValueError:
             print("unknown error occurred")
-    return
+            output_text("unknown error occurred")
 
 def send_to_chatGPT(messages, model="gpt-3.5-turbo"):
 
@@ -58,22 +56,28 @@ def send_to_chatGPT(messages, model="gpt-3.5-turbo"):
     messages.append(response.choices[0].message)
     return message
 
+def correct_text(text):
+    tool = LanguageTool('en-US')  # LanguageTool instance with English language rules
+    corrected_text = tool.correct(text)
+    return corrected_text
+
 def output_text(text):
     f = open(f"{LOG_PATH}/output.txt", "a")
+    print(text)
     f.write(text)
     f.write("\n")
     f.close()
     return
 
 def SpeakText(response):
-    output_text(f"AI: {response.capitalize()}.")
-    subprocess.run(["espeak", "-v", "mb-en1+f1", "-s", "100" ,response])
+    output_text(f"TARS: {response}")
+    subprocess.run(["espeak", "-v", "mb-us1", "-s", "120" ,response])
 
-messages = [{"role": "user", "content": "Act like Jarvis from IronMan"}]
+messages = [{"role": "system", "content": "You are TARS a witty, sarcastic, and humorous robot companion from the Movie Interstellar. Respond only as TARS, including whitty banter."}]
 while(1):
-    text = record_text()
-    output_text(f"User: {text.capitalize()}.")
+    speak = record_text()
+    text = correct_text(speak)
+    output_text(f"USER: {text}")
     messages.append({"role": "user", "content": text})
     response = send_to_chatGPT(messages)
     SpeakText(response)
-    print(response)
