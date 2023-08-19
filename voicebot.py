@@ -12,6 +12,7 @@ load_dotenv()
 
 OPENAI_KEY = os.getenv('OPENAI_KEY')
 WAKE_WORD = os.getenv('WAKE_WORD')
+LOG_PATH = os.getenv('LOG_PATH')
 
 import openai
 openai.api_key = OPENAI_KEY
@@ -58,7 +59,7 @@ def send_to_chatGPT(messages, model="gpt-3.5-turbo"):
     return message
 
 def output_text(text):
-    f = open("/home/hypertoken/bin/VoiceBot/output.txt", "a")
+    f = open(f"{LOG_PATH}/output.txt", "a")
     f.write(text)
     f.write("\n")
     f.close()
